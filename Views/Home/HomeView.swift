@@ -11,10 +11,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct HomeView: View {
 
-    @EnvironmentObject var questVM: QuestViewModel
+    @Query private var quests: [Quest]
     @State private var showAddQuest = false
 
     var body: some View {
@@ -27,12 +28,12 @@ struct HomeView: View {
             VStack(spacing: 24) {
                 Spacer().frame(height: 40)
 
-                ProgressRingView(quests: questVM.quests)
+                ProgressRingView(quests: quests)
 
                 StartButton()
 
                 TodayFocusSection(
-                    quests: questVM.quests,
+                    quests: quests,
                     onAddQuest: {
                         showAddQuest = true
                     }
@@ -44,11 +45,9 @@ struct HomeView: View {
         }
         .navigationDestination(for: Quest.self) { quest in
             QuestDetailView(quest: quest)
-                .environmentObject(questVM)
         }
         .sheet(isPresented: $showAddQuest) {
             AddQuestView()
-                .environmentObject(questVM)
         }
     }
 }

@@ -6,17 +6,14 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct QuestDetailView: View {
 
-    @EnvironmentObject var questVM: QuestViewModel
+    @Environment(\.modelContext) private var context
     let quest: Quest
 
     @State private var newTaskText = ""
-
-    private var questIndex: Int? {
-        questVM.quests.firstIndex(where: { $0.id == quest.id })
-    }
 
     var body: some View {
         ZStack {
@@ -25,65 +22,51 @@ struct QuestDetailView: View {
                 .scaledToFill()
                 .ignoresSafeArea()
 
-            if let index = questIndex {
-                VStack {
-                    ScrollView {
-                        VStack(spacing: 20) {
+            VStack {
+                ScrollView {
+                    VStack(spacing: 20) {
 
-                            Text("\(questVM.quests[index].icon) \(questVM.quests[index].title)")
-                                .font(.custom("Cochin", size: 30))
-                                .padding(.top)
-                                .fontWeight(.black)
+                        Text("\(quest.icon) \(quest.title)")
+                            .font(.custom("Cochin", size: 30))
+                            .fontWeight(.black)
 
-                            // Add new task
-                            HStack {
-                                TextField("New task", text: $newTaskText)
+                        HStack {
+                            TextField("New task", text: $newTaskText)
 
-                                Button {
-                                    guard !newTaskText.isEmpty else { return }
-                                    questVM.addTask(
-                                        to: questVM.quests[index].id,
-                                        title: newTaskText
-                                    )
-                                    newTaskText = ""
-                                } label: {
-                                    Image(systemName: "plus")
-                                        .font(.system(size: 20, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .frame(width: 45, height: 45)
-                                        .background(Color.brown)
-                                        .clipShape(Circle())
-                                }
+                            Button {
+                                guard !newTaskText.isEmpty else { return }
+                                quest.tasks.append(TaskItem(title: newTaskText))
+                                newTaskText = ""
+                            } label: {
+                                Image(systemName: "plus")
+                                    .foregroundColor(.white)
+                                    .frame(width: 45, height: 45)
+                                    .background(Color.brown)
+                                    .clipShape(Circle())
                             }
-                            .padding()
-                            .background(.ultraThinMaterial)
-                            .cornerRadius(30)
-                            .frame(maxWidth: 350)
-
-                            // Tasks
-                            VStack(spacing: 12) {
-                                ForEach(questVM.quests[index].tasks) { task in
-                                    QuestTaskRow(
-                                        questID: questVM.quests[index].id,
-                                        task: task
-                                    )
-                                }
-                            }
-                            .frame(maxWidth: 350)
                         }
-                        .padding(.bottom, 120)
-                    }
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(30)
+                        .frame(maxWidth: 350)
 
-                    Image("panda-study-floor")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 200)
-                        .padding(.bottom, 60)
+                        VStack(spacing: 12) {
+                            ForEach(quest.tasks) { task in
+                                QuestTaskRow(
+                                    task: task,
+                                    onDelete: {
+                                        quest.tasks.removeAll { $0 === task }
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
-            } else {
-                // Safety fallback (never crashes)
-                Text("Quest not found 🐼")
-                    .foregroundStyle(.secondary)
+
+                Image("panda-study-floor")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 200)
             }
         }
     }

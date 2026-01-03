@@ -6,9 +6,10 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct AddQuestView: View {
-    @EnvironmentObject var questVM: QuestViewModel
+    @Environment(\.modelContext) private var context
     @Environment(\.dismiss) var dismiss
 
     @State private var questName = ""
@@ -28,22 +29,19 @@ struct AddQuestView: View {
             ScrollView {
                 VStack(spacing: 20) {
 
-                    // Panda mascot
-                    Image("panda-study") // add this to Assets
+                    Image("panda-study")
                         .resizable()
                         .scaledToFit()
                         .frame(height: 160)
                         .padding()
 
-                    // Quest name
                     TextField("Quest name", text: $questName)
                         .padding()
                         .background(.ultraThinMaterial)
                         .cornerRadius(30)
                         .frame(width: 350)
-                        .font(.custom("Cochin", size:20))
+                        .font(.custom("Cochin", size: 20))
 
-                    // Icon picker
                     HStack {
                         ForEach(icons, id: \.self) { icon in
                             Text(icon)
@@ -51,71 +49,55 @@ struct AddQuestView: View {
                                 .padding(8)
                                 .background(selectedIcon == icon ? Color.white.opacity(0.4) : .clear)
                                 .cornerRadius(10)
-                                .onTapGesture {
-                                    selectedIcon = icon
-                                }
+                                .onTapGesture { selectedIcon = icon }
                         }
                     }
 
-                    // Add task
                     HStack {
                         TextField("New task", text: $taskText)
-                            
-                        Button {
-                                guard !taskText.isEmpty else { return }
-                                tasks.append(TaskItem(title: taskText))
-                                taskText = ""
-                            } label: {
-                                Image(systemName: "plus")
-                                    .font(.system(size: 22, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .frame(width: 50, height: 50)
-                                    .background(Color.brown)
-                                    .clipShape(Circle())
-                            }
-                        }
-                        .frame(maxWidth: 350)
-                        .padding(.leading)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(30)
-                        .frame(width: 350)
-                        .font(.custom("Cochin", size:20))
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(30)
-                        .frame(width: 350)
-                        .font(.custom("Cochin", size:20))
 
-                    // Task preview
+                        Button {
+                            guard !taskText.isEmpty else { return }
+                            tasks.append(TaskItem(title: taskText))
+                            taskText = ""
+                        } label: {
+                            Image(systemName: "plus")
+                                .foregroundColor(.white)
+                                .frame(width: 50, height: 50)
+                                .background(Color.brown)
+                                .clipShape(Circle())
+                        }
+                    }
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(30)
+                    .frame(width: 350)
+
                     VStack(spacing: 12) {
                         ForEach(tasks.indices, id: \.self) { index in
                             TaskRow(
                                 task: $tasks[index],
-                                onDelete: {
-                                    tasks.remove(at: index)
-                                }
+                                onDelete: { tasks.remove(at: index) }
                             )
                         }
                     }
-                    .frame(maxWidth: 350)
 
-
-                    // Save button
                     Button {
-                        questVM.addQuest(
+                        let quest = Quest(
                             title: questName,
                             icon: selectedIcon,
                             tasks: tasks
                         )
+                        context.insert(quest)
                         dismiss()
                     } label: {
                         Text("Save Quest")
-                            .fontWeight(.heavy)
                             .frame(maxWidth: 320)
                             .padding()
                             .background(Color.brown)
                             .cornerRadius(30)
-                            .font(.custom("Cochin", size:20))
-                            .foregroundColor(Color.white)
+                            .foregroundColor(.white)
+                            .font(.custom("Cochin", size: 20))
                     }
                 }
                 .padding()
@@ -188,33 +170,28 @@ struct TaskRow: View {
 }
 
 struct QuestTaskRow: View {
-    @EnvironmentObject var questVM: QuestViewModel
 
-    let questID: UUID
     let task: TaskItem
 
     @State private var showEditAlert = false
     @State private var editedTitle = ""
 
+    var onDelete: () -> Void
+
     var body: some View {
         HStack {
-            // Completion toggle
             Button {
-                questVM.toggleTask(questID: questID, taskID: task.id)
+                task.isDone.toggle()
             } label: {
                 Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
                     .foregroundColor(task.isDone ? .green : .brown)
-                    .font(.title3)
             }
 
-            // Task title
             Text(task.title)
                 .strikethrough(task.isDone)
-                .foregroundColor(task.isDone ? .gray : .primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
                 .font(.custom("Cochin", size: 20))
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Three-dot menu
             Menu {
                 Button {
                     editedTitle = task.title
@@ -223,15 +200,12 @@ struct QuestTaskRow: View {
                     Label("Edit", systemImage: "pencil")
                 }
 
-                Button(role: .destructive) {
-                    questVM.deleteTask(questID: questID, taskID: task.id)
-                } label: {
+                Button(role: .destructive, action: onDelete) {
                     Label("Delete", systemImage: "trash")
                 }
             } label: {
                 Image(systemName: "ellipsis")
                     .rotationEffect(.degrees(90))
-                    .foregroundColor(.brown)
             }
         }
         .padding()
@@ -239,16 +213,11 @@ struct QuestTaskRow: View {
         .cornerRadius(20)
         .alert("Edit Task", isPresented: $showEditAlert) {
             TextField("Task name", text: $editedTitle)
-
             Button("Save") {
-                guard !editedTitle.isEmpty else { return }
-                questVM.editTask(
-                    questID: questID,
-                    taskID: task.id,
-                    newTitle: editedTitle
-                )
+                if !editedTitle.isEmpty {
+                    task.title = editedTitle
+                }
             }
-
             Button("Cancel", role: .cancel) {}
         }
     }

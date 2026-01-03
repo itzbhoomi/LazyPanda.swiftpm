@@ -6,10 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct QuestsView: View {
 
-    @EnvironmentObject var questVM: QuestViewModel
+    @Query private var quests: [Quest]
     @State private var showAddQuest = false
 
     var body: some View {
@@ -22,19 +23,16 @@ struct QuestsView: View {
             ScrollView {
                 VStack(spacing: 24) {
 
-                    // Title
                     Text("My Study Quests")
-                        .font(Font.custom("Cochin", size: 30))
+                        .font(.custom("Cochin", size: 30))
                         .padding(.top, 30)
                         .fontWeight(.black)
 
-                    // Panda Mascot
                     Image("panda_quests")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 200)
 
-                    // Add Quest Button
                     Button {
                         showAddQuest = true
                     } label: {
@@ -44,34 +42,26 @@ struct QuestsView: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: 300)
                             .padding()
-                            .background(Gradient(colors: [Color.black, Color.brown]))
+                            .background(Gradient(colors: [.black, .brown]))
                             .cornerRadius(40)
                             .shadow(radius: 10)
                     }
-                    .padding(.horizontal)
 
-                    // Quest List
                     VStack(spacing: 16) {
-                        ForEach(questVM.quests) { quest in
-                            NavigationLink {
-                                QuestDetailView(quest: quest)
-                                    .environmentObject(questVM) // 🔥 CRITICAL FIX
-                            } label: {
+                        ForEach(quests) { quest in
+                            NavigationLink(value: quest) {
                                 QuestCard(quest: quest)
-                                    .font(.custom("Cochin", size: 25))
-                                    .fontWeight(.black)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: 350)
-                                                              }
+                            }
                         }
                     }
-                    .padding(.horizontal)
                 }
             }
         }
+        .navigationDestination(for: Quest.self) { quest in
+            QuestDetailView(quest: quest)
+        }
         .sheet(isPresented: $showAddQuest) {
             AddQuestView()
-                .environmentObject(questVM)
         }
     }
 }

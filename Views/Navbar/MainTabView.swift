@@ -10,7 +10,6 @@ import SwiftUI
 struct MainTabView: View {
 
     @State private var selectedTab: NavDestination = .home
-    @StateObject private var questVM = QuestViewModel()
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -19,11 +18,9 @@ struct MainTabView: View {
                 switch selectedTab {
                 case .home:
                     HomeView()
-                        .environmentObject(questVM)
 
                 case .quests:
                     QuestsView()
-                        .environmentObject(questVM)
 
                 case .rewards:
                     RewardsView()

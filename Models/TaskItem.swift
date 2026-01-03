@@ -5,15 +5,14 @@
 //  Created by Bhoomi on 31/12/25.
 //
 
-import Foundation
+import SwiftData
 
-struct TaskItem: Identifiable, Codable, Hashable {
-    let id: UUID
+@Model
+class TaskItem {
     var title: String
     var isDone: Bool
 
     init(title: String, isDone: Bool = false) {
-        self.id = UUID()
         self.title = title
         self.isDone = isDone
     }

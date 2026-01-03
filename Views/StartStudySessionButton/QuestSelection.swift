@@ -6,10 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct QuestSelectionView: View {
 
-    @EnvironmentObject var questVM: QuestViewModel
+    @Query private var quests: [Quest]
 
     @State private var selectedQuest: Quest?
     @State private var minutes = 30
@@ -17,72 +18,76 @@ struct QuestSelectionView: View {
 
     var body: some View {
         ZStack {
-            // 🌿 Theme background
             Image("bamboo_bg")
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
 
-            VStack {
+            VStack(spacing: 20) {
 
-                List(questVM.quests) { quest in
+                // 📜 Quest List
+                List(quests) { quest in
                     Button {
                         selectedQuest = quest
                     } label: {
                         HStack {
                             Text(quest.icon)
                             Text(quest.title)
+                                .font(.custom("Cochin", size: 20))
+                                .fontWeight(.bold)
+
                             Spacer()
-                            if selectedQuest?.id == quest.id {
+
+                            if selectedQuest === quest {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(.green)
                             }
                         }
-                        .font(.custom("Cochin", size: 18))
+                        .padding(.vertical, 6)
                     }
                 }
                 .scrollContentBackground(.hidden)
+                .frame(maxHeight: 420) // 👈 keeps controls higher on screen
 
-                Stepper {
-                    Text("Duration: \(minutes) min")
-                        .font(.custom("Cochin", size: 18))
-                } onIncrement: {
-                    minutes += 5
-                } onDecrement: {
-                    minutes = max(5, minutes - 5)
-                }
-                .padding()
-                .background(Color.white.opacity(0.6))
-                .cornerRadius(20)
-                .shadow(radius: 6)
-                .padding()
+                // ⏱ Duration (Styled like NewStudySession)
+                Stepper("Duration: \(minutes) min",
+                        value: $minutes,
+                        in: 5...180,
+                        step: 5)
+                    .padding()
+                    .background(Color.white.opacity(0.6))
+                    .cornerRadius(20)
+                    .font(.custom("Cochin", size: 20))
+                    .fontWeight(.bold)
+                    .padding(.horizontal)
 
+                // ▶️ Start Session Button
                 Button {
                     startTimer = true
                 } label: {
                     Text("Start Quest Session")
                         .font(.custom("Cochin", size: 20))
                         .fontWeight(.bold)
-                        .frame(maxWidth: 240)
+                        .frame(maxWidth: 220)
                         .padding()
-                        .background(Color.white.opacity(0.7))
+                        .background(Color.brown)
                         .cornerRadius(30)
-                        .shadow(radius: 8)
+                        .shadow(radius: 10)
+                        .foregroundColor(.white)
                 }
                 .disabled(selectedQuest == nil)
                 .opacity(selectedQuest == nil ? 0.5 : 1)
 
-                Spacer()
+                Spacer(minLength: 20) // 👈 pushes everything slightly up
             }
             .padding(.top)
         }
-        .navigationTitle("Choose Quest")
         .navigationDestination(isPresented: $startTimer) {
             if let quest = selectedQuest {
                 TimerView(
                     sessionTitle: quest.title,
                     totalMinutes: minutes,
-                    tasks: quest.tasks   // ✅ PASS DIRECTLY
+                    tasks: quest.tasks
                 )
             }
         }

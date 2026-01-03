@@ -5,19 +5,17 @@
 //  Created by Bhoomi on 31/12/25.
 //
 
-import Foundation
+import SwiftData
 
-struct Quest: Identifiable, Codable, Hashable {
-    let id: UUID
+@Model
+class Quest {
     var title: String
     var icon: String
-    var tasks: [TaskItem]  // <-- use TaskItem consistently
+    var tasks: [TaskItem]
 
     init(title: String, icon: String, tasks: [TaskItem] = []) {
-        self.id = UUID()
         self.title = title
         self.icon = icon
         self.tasks = tasks
     }
 }
-
