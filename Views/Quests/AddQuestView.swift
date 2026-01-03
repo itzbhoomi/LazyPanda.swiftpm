@@ -128,8 +128,9 @@ struct TaskRow: View {
             Text(task.title)
                 .strikethrough(task.isDone)
                 .foregroundColor(task.isDone ? .gray : .primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: 270, alignment: .leading)
                 .font(.custom("Cochin", size: 20))
+                
 
             // Three dot menu
             Menu {
@@ -190,7 +191,7 @@ struct QuestTaskRow: View {
             Text(task.title)
                 .strikethrough(task.isDone)
                 .font(.custom("Cochin", size: 20))
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: 400, alignment: .leading)
 
             Menu {
                 Button {

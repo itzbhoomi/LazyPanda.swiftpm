@@ -6,22 +6,27 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct TodayFocusSection: View {
     var quests: [Quest]
     var onAddQuest: () -> Void
 
+    @Environment(\.modelContext) private var context
+    @State private var questToDelete: Quest?   // 👈 track which quest is being deleted
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+
             Text("Today's Quests")
                 .font(.custom("Cochin", size: 25))
                 .fontWeight(.bold)
                 .padding(.horizontal, 10)
-            
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    
-                    // + Button as first card
+
+                    // ➕ Add Quest card
                     Button(action: {
                         onAddQuest()
                     }) {
@@ -40,17 +45,33 @@ struct TodayFocusSection: View {
                         .foregroundStyle(Color(.brown))
                     }
 
-                    // User quests
+                    // 🧭 User quests
                     ForEach(quests) { quest in
                         NavigationLink(value: quest) {
                             FocusCard(icon: quest.icon, title: quest.title)
                         }
-                        .buttonStyle(.plain) // keeps card look intact
+                        .buttonStyle(.plain)
+                        .onLongPressGesture {
+                            questToDelete = quest   // 👈 trigger confirmation
+                        }
                     }
-
                 }
                 .padding(.horizontal, 15)
             }
+        }
+        // ⚠️ Confirmation Alert
+        .alert("Delete Quest?", isPresented: .constant(questToDelete != nil)) {
+            Button("Delete", role: .destructive) {
+                if let quest = questToDelete {
+                    context.delete(quest)
+                }
+                questToDelete = nil
+            }
+            Button("Cancel", role: .cancel) {
+                questToDelete = nil
+            }
+        } message: {
+            Text("This will permanently delete this quest and all its tasks.")
         }
     }
 }

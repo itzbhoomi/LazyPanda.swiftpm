@@ -60,6 +60,7 @@ struct QuestDetailView: View {
                                 )
                             }
                         }
+                        .padding(.horizontal)
                     }
                 }
 
@@ -67,6 +68,7 @@ struct QuestDetailView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(height: 200)
+                    .padding(.bottom,25)
             }
         }
     }

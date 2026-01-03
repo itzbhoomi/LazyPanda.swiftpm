@@ -52,6 +52,7 @@ struct QuestsView: View {
                             NavigationLink(value: quest) {
                                 QuestCard(quest: quest)
                             }
+                            .frame(maxWidth: 300)
                         }
                     }
                 }
