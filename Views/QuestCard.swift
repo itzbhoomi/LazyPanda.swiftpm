@@ -13,14 +13,15 @@ struct QuestCard: View {
     var body: some View {
         HStack(spacing: 16) {
             Text(quest.icon)
-                .font(.largeTitle)
+                .font(.custom("Cochin", size: 30))
 
             VStack(alignment: .leading) {
                 Text(quest.title)
-                    .font(.headline)
+                    .font(.custom("Cochin", size: 20))
+                    .foregroundStyle(Color(.black))
 
                 Text("\(quest.tasks.count) tasks")
-                    .font(.subheadline)
+                    .font(.custom("Cochin", size: 15))
                     .foregroundColor(.secondary)
             }
 
@@ -28,6 +29,6 @@ struct QuestCard: View {
         }
         .padding()
         .background(.ultraThinMaterial)
-        .cornerRadius(18)
+        .cornerRadius(30)
     }
 }

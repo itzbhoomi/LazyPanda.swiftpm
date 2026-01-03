@@ -10,7 +10,7 @@ import AppleProductTypes
 let package = Package(
     name: "LazyPanda",
     platforms: [
-        .iOS("16.0")
+        .iOS("17.0")
     ],
     products: [
         .iOSApplication(
@@ -20,7 +20,7 @@ let package = Package(
             teamIdentifier: "S563784QT8",
             displayVersion: "1.0",
             bundleVersion: "1",
-            appIcon: .placeholder(icon: .cloud),
+            appIcon: .placeholder(icon: .openBook),
             accentColor: .presetColor(.cyan),
             supportedDeviceFamilies: [
                 .pad,

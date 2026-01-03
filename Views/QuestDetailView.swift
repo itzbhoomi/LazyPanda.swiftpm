@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct QuestDetailView: View {
+
     @EnvironmentObject var questVM: QuestViewModel
     let quest: Quest
 
     @State private var newTaskText = ""
 
-    // Computed binding to always get the latest quest from ViewModel
-    var questBinding: Quest? {
-        questVM.quests.first(where: { $0.id == quest.id })
+    private var questIndex: Int? {
+        questVM.quests.firstIndex(where: { $0.id == quest.id })
     }
 
     var body: some View {
@@ -25,62 +25,66 @@ struct QuestDetailView: View {
                 .scaledToFill()
                 .ignoresSafeArea()
 
-            VStack {
-                ScrollView {
-                    VStack(spacing: 20) {
+            if let index = questIndex {
+                VStack {
+                    ScrollView {
+                        VStack(spacing: 20) {
 
-                        // Quest title with icon
-                        Text("\(quest.icon) \(quest.title)")
-                            .font(.custom("Cochin", size: 30))
-                            .padding(.top)
+                            Text("\(questVM.quests[index].icon) \(questVM.quests[index].title)")
+                                .font(.custom("Cochin", size: 30))
+                                .padding(.top)
+                                .fontWeight(.black)
 
-                        // Add new task field
-                        HStack {
-                            TextField("New task", text: $newTaskText)
+                            // Add new task
+                            HStack {
+                                TextField("New task", text: $newTaskText)
 
-                            Button {
-                                guard !newTaskText.isEmpty else { return }
-                                questVM.addTask(to: quest.id, title: newTaskText)
-                                newTaskText = ""
-                            } label: {
-                                Image(systemName: "plus")
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .frame(width: 45, height: 45)
-                                    .background(Color.brown)
-                                    .clipShape(Circle())
+                                Button {
+                                    guard !newTaskText.isEmpty else { return }
+                                    questVM.addTask(
+                                        to: questVM.quests[index].id,
+                                        title: newTaskText
+                                    )
+                                    newTaskText = ""
+                                } label: {
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .frame(width: 45, height: 45)
+                                        .background(Color.brown)
+                                        .clipShape(Circle())
+                                }
                             }
-                        }
-                        .padding()
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(30)
-                        .frame(maxWidth: 350)
+                            .padding()
+                            .background(.ultraThinMaterial)
+                            .cornerRadius(30)
+                            .frame(maxWidth: 350)
 
-                        // Task list
-                        VStack(spacing: 12) {
-                            if let questBinding {
-                                ForEach(questBinding.tasks) { task in
+                            // Tasks
+                            VStack(spacing: 12) {
+                                ForEach(questVM.quests[index].tasks) { task in
                                     QuestTaskRow(
-                                        questID: questBinding.id,
+                                        questID: questVM.quests[index].id,
                                         task: task
                                     )
                                 }
                             }
+                            .frame(maxWidth: 350)
                         }
-                        .frame(maxWidth: 350)
+                        .padding(.bottom, 120)
                     }
-                    .padding(.bottom, 120) // space for panda
-                }
 
-                // Panda mascot bottom-center
-                Image("panda-study-floor") // panda laying on stomach, playful legs
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 140)
-                    .padding(.bottom, 10)
+                    Image("panda-study-floor")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 200)
+                        .padding(.bottom, 60)
+                }
+            } else {
+                // Safety fallback (never crashes)
+                Text("Quest not found 🐼")
+                    .foregroundStyle(.secondary)
             }
         }
     }
 }
-
-

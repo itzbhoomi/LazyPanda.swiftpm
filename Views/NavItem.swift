@@ -10,15 +10,20 @@ import SwiftUI
 struct NavItem: View {
     let icon: String
     let title: String
-    var active: Bool = false
+    let isActive: Bool
+    let action: () -> Void
 
     var body: some View {
-        VStack {
-            Image(systemName: icon)
-            Text(title)
-                .font(.caption2)
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 18, weight: .medium))
+
+                Text(title)
+                    .font(.caption2)
+            }
+            .foregroundColor(isActive ? .mint : .white.opacity(0.8))
         }
-        .foregroundColor(active ? .green : .gray)
+        .buttonStyle(.plain)
     }
 }
-

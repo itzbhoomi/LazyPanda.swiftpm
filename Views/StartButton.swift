@@ -20,10 +20,10 @@ struct StartButton: View {
                 Text("Start Study Session")
                     .font(.custom("Cochin", size: 25))
                     .fontWeight(.black)
-                    .foregroundColor(.black)
+                    .foregroundColor(.white)
                     .frame(maxWidth: 300)
                     .padding()
-                    .background(Color.white.opacity(0.6))
+                    .background(Gradient(colors: [Color.black, Color.brown]))
                     .cornerRadius(40)
                     .shadow(radius: 10)
             }
