@@ -87,7 +87,7 @@ struct QuestSelectionView: View {
                 TimerView(
                     sessionTitle: quest.title,
                     totalMinutes: minutes,
-                    tasks: quest.tasks
+                    tasks: Array(quest.tasks)
                 )
             }
         }

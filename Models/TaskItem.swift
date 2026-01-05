@@ -10,7 +10,7 @@ import SwiftData
 @Model
 class TaskItem {
     var title: String
-    var isDone: Bool
+    var isDone: Bool = false
 
     init(title: String, isDone: Bool = false) {
         self.title = title

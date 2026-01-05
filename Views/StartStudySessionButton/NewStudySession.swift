@@ -39,7 +39,7 @@ struct NewStudySessionView: View {
                         .font(.custom("Cochin", size: 20))
                         .fontWeight(.bold)
                     
-                    Stepper("Duration: \(minutes) min", value: $minutes, in: 5...180, step: 5)
+                    Stepper("Duration: \(minutes) min", value: $minutes, in: 1...180, step: 5)
                         .padding()
                         .background(Color.white.opacity(0.6))
                         .cornerRadius(20)
