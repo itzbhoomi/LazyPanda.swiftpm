@@ -2,181 +2,215 @@
 //  RewardsView.swift
 //  LazyPanda
 //
-//  Created by Bhoomi on 02/01/26.
-//
 
 import SwiftUI
 
 struct RewardsView: View {
 
-    // Mock streak progress (0.0 – 1.0)
     let streakProgress: CGFloat = 0.65
 
-    // Theme colors
     let bambooGreen = Color(red: 0.38, green: 0.67, blue: 0.45)
-    let softGreen = Color(red: 0.75, green: 0.88, blue: 0.78)
+    let softGreen   = Color(red: 0.75, green: 0.88, blue: 0.78)
+
+    @State private var glowPulse = false
+    @State private var pandaFloat = false
+    @State private var appear = false
+
+    // 🔥 Fireflies everywhere
+    let fireflies: [Firefly] = (0..<22).map { _ in
+        Firefly(
+            x: CGFloat.random(in: 0.05...0.95),
+            y: CGFloat.random(in: 0.05...0.95),
+            size: CGFloat.random(in: 5...9),
+            speed: Double.random(in: 8...14),
+            delay: Double.random(in: 0...6)
+        )
+    }
 
     var body: some View {
         ZStack {
 
-            // Background
+            // 🌿 Background
             Image("bamboo_bg")
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
 
+            // ✨ Fireflies layer
+            GeometryReader { geo in
+                ZStack {
+                    ForEach(fireflies) { firefly in
+                        FireflyView(firefly: firefly)
+                            .position(
+                                x: firefly.x * geo.size.width,
+                                y: firefly.y * geo.size.height
+                            )
+                    }
+                }
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+            }
+
             VStack {
                 Spacer().frame(height: 20)
 
-                // Top Title Board
-                Image("lazy_panda_board")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 70)
+                VStack(spacing: 0) { // spacing can be adjusted
+                    Text("LazyPanda’s")
+                        .font(.custom("Cochin", size: 25))
+                        .fontWeight(.black)
+                        .foregroundColor(.white)
+                    Text("Wonderland")
+                        .font(.custom("Cochin", size: 25))
+                        .fontWeight(.black)
+                        .foregroundColor(.white)
+                }
+                .frame(maxWidth: 190)
+                .padding()
+                .background(
+                    LinearGradient(
+                        colors: [Color.black, Color.brown],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .cornerRadius(40)
+                .shadow(radius: 10)
+                .offset(y:160)
+
+
 
                 Spacer()
 
-                // Main Garden Area
                 ZStack {
 
-                    // Left: Streak Bamboo with Vertical Progress
+                    // 🎋 Streak Bamboo
                     ZStack(alignment: .bottom) {
 
-                        // Bamboo image (UNCHANGED)
                         Image("bamboo_streak")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 470)
 
-                        // Vertical Progress Overlay (glowing)
                         ZStack(alignment: .bottom) {
 
-                            // Track
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.brown.opacity(0.9),
-                                            Color.brown.opacity(0.6)
-                                        ],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                )
+                                .fill(Color.brown.opacity(0.7))
                                 .frame(width: 8, height: 220)
-                                .shadow(color: Color.black.opacity(0.25), radius: 4, y: 2)
 
-                            // Filled Progress (glow)
                             RoundedRectangle(cornerRadius: 20)
                                 .fill(
                                     LinearGradient(
-                                        colors: [
-                                            softGreen.opacity(0.95),
-                                            bambooGreen.opacity(0.85)
-                                        ],
+                                        colors: [softGreen, bambooGreen],
                                         startPoint: .top,
                                         endPoint: .bottom
                                     )
                                 )
                                 .frame(width: 8, height: 220 * streakProgress)
-                                .shadow(color: softGreen.opacity(0.9), radius: 10)
-                                .shadow(color: bambooGreen.opacity(0.6), radius: 18)
+                                .shadow(color: softGreen.opacity(glowPulse ? 0.9 : 0.6), radius: 18)
+                                .shadow(color: bambooGreen.opacity(glowPulse ? 0.7 : 0.4), radius: 26)
                         }
                         .padding(.bottom, 10)
-                        .padding(.leading, 0)
+
+                        // 🟢 Streak Days Button (Glowing)
+                        VStack {
+                            Button {
+                                // action when tapped (optional)
+                            } label: {
+                                Text("7") // mock streak days
+                                    .foregroundColor(.black)
+                                    .font(.custom("Cochin", size: 25))
+                                    .fontWeight(.black)
+                                    .frame(width: 50, height: 50)
+                                    .background(
+                                        RadialGradient(
+                                            gradient: Gradient(colors: [Color.white.opacity(0.9), Color.pink.opacity(0.5)]),
+                                            center: .center,
+                                            startRadius: 5,
+                                            endRadius: 23
+                                        )
+                                    )
+                                    .clipShape(Circle())
+                                    .shadow(color: Color.yellow.opacity(glowPulse ? 0.8 : 0.4), radius: 12)
+                                    .shadow(color: Color.pink.opacity(glowPulse ? 0.5 : 0.3), radius: 20)
+                            }
+                        }
+                        .offset(y: -220 * streakProgress - 0) // position above current streak
                     }
-                    .offset(x: -160, y: 30)
+                    .offset(x: -160, y: -50)
 
 
-                    // Badges + Themes (above gaming console)
-                    VStack(spacing: 16) {
+                    // 🎖 Buttons (GAME FEEL)
+                    VStack(spacing: 0) {
 
-                        Button {
-                            // navigate to badges
-                        } label: {
+                        Button {} label: {
                             Image("badges_icon")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 135)
                         }
-                        .offset(y: 30)
+                        .buttonStyle(BouncyButtonStyle())
 
-                        Button {
-                            // navigate to themes
-                        } label: {
+                        Button {} label: {
                             Image("themes_icon")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 95)
+                        }
+                        .buttonStyle(BouncyButtonStyle())
+
+                        Button {} label: {
+                            Image("gaming_console")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 135)
                         }
-                        
-                        // Gaming Console Button
-                        Button {
-                            // navigate to games
-                        } label: {
-                            Image("gaming_console")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 115)
-                                .rotationEffect(.degrees(-20))
-                                .contentShape(Rectangle())
-                                .accessibilityLabel("Open Games")
-                        }
-
+                        .buttonStyle(BouncyButtonStyle(scale: 0.88)) // heavier feel
                     }
-                    .offset(x: 140, y: -120)
+                    .offset(x: 148, y: -120)
 
-                    
-
-                    // Center Panda
+                    // 🐼 Panda (ambient float only)
                     Image("playful_panda")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 370)
-                        .offset(y: 100)
+                        .frame(width: 490)
+                        .offset(y: pandaFloat ? 92 : 100)
                 }
+                .opacity(appear ? 1 : 0)
 
-                // Bottom Interaction Area
+                Spacer()
+
+                // ⬇️ Bottom Interaction Area
                 HStack(spacing: 0) {
 
-                    // Treasure Box
-                    Button {
-                        // navigate to rewards
-                    } label: {
+                    Button {} label: {
                         Image("treasure_box")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 105)
-                            .contentShape(Rectangle())
                     }
+                    .buttonStyle(BouncyButtonStyle())
 
                     Spacer()
 
-                    // Bamboo Entrance
-                    Button {
-                        // navigate to explore area
-                    } label: {
+                    Button {} label: {
                         Image("bamboo_entrance")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 190)
                             .padding(.vertical, 50)
-                            .offset(y: 18)
-                            .contentShape(Rectangle())
+                            .offset(y: 10)
                     }
+                    .buttonStyle(BouncyButtonStyle(scale: 0.94))
 
                     Spacer()
 
-                    // Panda Avatar Button
-                    Button {
-                        // navigate to avatar customization
-                    } label: {
+                    Button {} label: {
                         Image("panda_avatar_button")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 85)
-                            .contentShape(Rectangle())
                     }
+                    .buttonStyle(BouncyButtonStyle())
 
                     Spacer()
                 }
@@ -186,5 +220,102 @@ struct RewardsView: View {
                 Spacer().frame(height: 30)
             }
         }
+        .onAppear {
+            appear = true
+
+            withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                glowPulse.toggle()
+            }
+
+            withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
+                pandaFloat.toggle()
+            }
+        }
+    }
+}
+
+//
+// MARK: - 🎮 Bouncy Button Style
+//
+
+struct BouncyButtonStyle: ButtonStyle {
+
+    var scale: CGFloat = 0.92
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? scale : 1)
+            .brightness(configuration.isPressed ? 0.08 : 0)
+            .animation(
+                .interactiveSpring(
+                    response: 0.25,
+                    dampingFraction: 0.55,
+                    blendDuration: 0.1
+                ),
+                value: configuration.isPressed
+            )
+    }
+}
+
+//
+// MARK: - Firefly Model
+//
+
+struct Firefly: Identifiable {
+    let id = UUID()
+    let x: CGFloat
+    let y: CGFloat
+    let size: CGFloat
+    let speed: Double
+    let delay: Double
+}
+
+//
+// MARK: - Firefly View (FLOAT + FLICKER)
+//
+
+struct FireflyView: View {
+    @State private var float = false
+    @State private var flicker = false
+
+    let firefly: Firefly
+
+    var body: some View {
+        Circle()
+            .fill(
+                RadialGradient(
+                    colors: [
+                        Color(red: 1.0, green: 1.0, blue: 0.75, opacity: 1),
+                        Color.clear
+                    ],
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: firefly.size * 3
+                )
+            )
+            .frame(width: firefly.size, height: firefly.size)
+            .blur(radius: 2)
+            .opacity(flicker ? 0.9 : 0.35)
+            .offset(
+                x: float ? CGFloat.random(in: -40...40) : 0,
+                y: float ? CGFloat.random(in: -120...120) : 0
+            )
+            .onAppear {
+                withAnimation(
+                    .easeInOut(duration: firefly.speed)
+                        .repeatForever(autoreverses: true)
+                        .delay(firefly.delay)
+                ) {
+                    float.toggle()
+                }
+
+                withAnimation(
+                    .easeInOut(duration: Double.random(in: 1.2...2.5))
+                        .repeatForever(autoreverses: true)
+                        .delay(firefly.delay)
+                ) {
+                    flicker.toggle()
+                }
+            }
     }
 }
