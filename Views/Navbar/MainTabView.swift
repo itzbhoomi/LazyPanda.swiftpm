@@ -6,10 +6,21 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct MainTabView: View {
 
+    @Environment(\.modelContext) private var modelContext
+    @StateObject private var coinManager: CoinManager
+
     @State private var selectedTab: NavDestination = .home
+
+    init() {
+        // Temporary placeholder, real context injected onAppear
+        _coinManager = StateObject(
+            wrappedValue: CoinManager(context: nil)
+        )
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -31,6 +42,10 @@ struct MainTabView: View {
             }
 
             BottomNavBar(selectedTab: $selectedTab)
+        }
+        .environmentObject(coinManager)
+        .onAppear {
+            coinManager.configure(with: modelContext)
         }
     }
 }

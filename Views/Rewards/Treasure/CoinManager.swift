@@ -11,48 +11,48 @@ import SwiftData
 @MainActor
 final class CoinManager: ObservableObject {
 
-    private let context: ModelContext
-    @Published private(set) var wallet: CoinWallet
+    private var context: ModelContext?
+    @Published private(set) var wallet: CoinWallet?
 
-    init(context: ModelContext) {
+    init(context: ModelContext?) {
         self.context = context
+    }
 
-        if let existingWallet = try? context.fetch(FetchDescriptor<CoinWallet>()).first {
-            self.wallet = existingWallet
+    func configure(with context: ModelContext) {
+        guard self.context == nil else { return }
+        self.context = context
+        loadWallet()
+    }
+
+    private func loadWallet() {
+        guard let context else { return }
+
+        if let wallet = try? context.fetch(
+            FetchDescriptor<CoinWallet>()
+        ).first {
+            self.wallet = wallet
         } else {
-            let newWallet = CoinWallet()
-            context.insert(newWallet)
-            self.wallet = newWallet
+            let wallet = CoinWallet()
+            context.insert(wallet)
+            self.wallet = wallet
+            try? context.save()
         }
     }
 
-    // MARK: - Earn Coins
+    // MARK: - Earn
     func earn(_ amount: Int, reason: CoinReason) {
-        guard amount > 0 else { return }
-
+        guard let wallet, let context else { return }
         wallet.balance += amount
-        save()
-
-        #if DEBUG
-        print("🐼 Earned \(amount) coins for \(reason.rawValue)")
-        #endif
+        try? context.save()
     }
 
-    // MARK: - Spend Coins
+    // MARK: - Spend
     func spend(_ amount: Int, reason: CoinSpendReason) -> Bool {
-        guard amount > 0, wallet.balance >= amount else { return false }
+        guard let wallet, let context else { return false }
+        guard wallet.balance >= amount else { return false }
 
         wallet.balance -= amount
-        save()
-
-        #if DEBUG
-        print("🎋 Spent \(amount) coins for \(reason.rawValue)")
-        #endif
-
-        return true
-    }
-
-    private func save() {
         try? context.save()
+        return true
     }
 }

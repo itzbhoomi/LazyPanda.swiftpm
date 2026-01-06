@@ -3,15 +3,20 @@ import SwiftData
 
 @main
 struct MyApp: App {
+
     var sharedModelContainer: ModelContainer = {
-            let schema = Schema([CoinWallet.self])
-            return try! ModelContainer(for: schema)
-        }()
-    
+        let schema = Schema([
+            CoinWallet.self,
+            Quest.self,
+            TaskItem.self
+        ])
+        return try! ModelContainer(for: schema)
+    }()
+
     var body: some Scene {
         WindowGroup {
             MainTabView()
         }
-        .modelContainer(for: [Quest.self, TaskItem.self])
+        .modelContainer(sharedModelContainer)
     }
 }

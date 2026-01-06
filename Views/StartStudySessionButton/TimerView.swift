@@ -10,36 +10,48 @@ import AudioToolbox
 
 struct TimerView: View {
 
+    // MARK: - Inputs
     let sessionTitle: String
     let totalMinutes: Int
     let tasks: [TaskItem]
+    let sessionType: SessionType
 
+    // MARK: - Environment
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var coinManager: CoinManager
 
-    // Timer state
+    // MARK: - Timer state
     @State private var remainingSeconds: Int
     @State private var timer: Timer?
 
-    // Task state
+    // MARK: - Task state
     @State private var localTasks: [TaskItem]
 
-    // Alarm & completion UI
+    // MARK: - Completion & alarm
     @State private var showCompletionScreen = false
     @State private var alarmTimer: Timer?
+    @State private var earnedCoins: Int = 0
 
     // Built-in iOS alarm sound (safe for Playgrounds)
     private let alarmSoundID: SystemSoundID = 1013
 
     // MARK: - Init
-    init(sessionTitle: String, totalMinutes: Int, tasks: [TaskItem]) {
+    init(
+        sessionTitle: String,
+        totalMinutes: Int,
+        tasks: [TaskItem],
+        sessionType: SessionType
+    ) {
         self.sessionTitle = sessionTitle
         self.totalMinutes = totalMinutes
         self.tasks = tasks
+        self.sessionType = sessionType
 
         _remainingSeconds = State(initialValue: totalMinutes * 60)
         _localTasks = State(initialValue: tasks)
     }
 
+    // MARK: - View
     var body: some View {
         ZStack {
 
@@ -76,7 +88,7 @@ struct TimerView: View {
                         tasksSection
                     }
 
-                    // 🛑 End Session Button
+                    // 🛑 End Session Button (NO COINS)
                     Button {
                         timer?.invalidate()
                         stopAlarm()
@@ -101,6 +113,7 @@ struct TimerView: View {
             // 🎉 Completion Overlay
             if showCompletionScreen {
                 CompletionOverlay(
+                    earnedCoins: earnedCoins,
                     stopAction: {
                         stopAlarm()
                         dismiss()
@@ -170,6 +183,7 @@ struct TimerView: View {
                     remainingSeconds -= 1
                 } else {
                     timer?.invalidate()
+                    rewardCoins()
                     playAlarmLoop()
                     showCompletionScreen = true
                 }
@@ -177,14 +191,29 @@ struct TimerView: View {
         }
     }
 
-    // MARK: - Alarm (Built-in iOS sound)
+    // MARK: - Coin Rewards
+    private func rewardCoins() {
+        switch sessionType {
+        case .study:
+            earnedCoins = CoinRewards.studySession
+            coinManager.earn(
+                CoinRewards.studySession,
+                reason: .studySessionCompleted
+            )
+
+        case .quest:
+            earnedCoins = CoinRewards.questCompletion
+            coinManager.earn(
+                CoinRewards.questCompletion,
+                reason: .questCompleted
+            )
+        }
+    }
+
+    // MARK: - Alarm
     @MainActor
     private func playAlarmLoop() {
-
-        // Play immediately
         AudioServicesPlaySystemSound(alarmSoundID)
-
-        // Repeat every 2 seconds
         alarmTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { _ in
             AudioServicesPlaySystemSound(alarmSoundID)
         }
@@ -197,15 +226,17 @@ struct TimerView: View {
 
     // MARK: - Helpers
     private func timeString(from seconds: Int) -> String {
-        String(format: "%02d:%02d",
-               seconds / 60,
-               seconds % 60)
+        String(format: "%02d:%02d", seconds / 60, seconds % 60)
     }
 }
 
+//////////////////////////////////////////////////////////
 // MARK: - Completion Overlay
+//////////////////////////////////////////////////////////
+
 struct CompletionOverlay: View {
 
+    let earnedCoins: Int
     let stopAction: () -> Void
 
     var body: some View {
@@ -234,6 +265,19 @@ struct CompletionOverlay: View {
                     .fontWeight(.bold)
                     .foregroundColor(.white)
 
+                if earnedCoins > 0 {
+                    Text("+\(earnedCoins) Bamboo Coins 🌿")
+                        .font(.custom("Cochin", size: 20))
+                        .fontWeight(.bold)
+                        .foregroundColor(.yellow)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 8)
+                        .background(
+                            Capsule()
+                                .fill(Color.black.opacity(0.6))
+                        )
+                }
+
                 Button(action: stopAction) {
                     Text("Stop")
                         .font(.headline)
@@ -248,7 +292,10 @@ struct CompletionOverlay: View {
     }
 }
 
+//////////////////////////////////////////////////////////
 // MARK: - Confetti
+//////////////////////////////////////////////////////////
+
 struct ConfettiView: View {
 
     @State private var animate = false
