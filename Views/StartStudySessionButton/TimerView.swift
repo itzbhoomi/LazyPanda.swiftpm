@@ -292,33 +292,3 @@ struct CompletionOverlay: View {
     }
 }
 
-//////////////////////////////////////////////////////////
-// MARK: - Confetti
-//////////////////////////////////////////////////////////
-
-struct ConfettiView: View {
-
-    @State private var animate = false
-
-    var body: some View {
-        GeometryReader { geo in
-            ForEach(0..<25, id: \.self) { _ in
-                Circle()
-                    .frame(width: 8, height: 8)
-                    .foregroundColor(.white.opacity(0.8))
-                    .position(
-                        x: CGFloat.random(in: 0...geo.size.width),
-                        y: animate ? geo.size.height + 40 : -40
-                    )
-                    .animation(
-                        .linear(duration: Double.random(in: 2.5...4))
-                            .repeatForever(autoreverses: false)
-                            .delay(Double.random(in: 0...1)),
-                        value: animate
-                    )
-            }
-        }
-        .onAppear { animate = true }
-        .ignoresSafeArea()
-    }
-}

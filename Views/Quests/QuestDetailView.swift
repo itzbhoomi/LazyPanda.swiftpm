@@ -14,9 +14,11 @@ struct QuestDetailView: View {
     let quest: Quest
 
     @State private var newTaskText = ""
+    @State private var showConfetti = false  // ✅ new state for confetti
 
     var body: some View {
         ZStack {
+            // Background
             Image("bamboo_bg")
                 .resizable()
                 .scaledToFill()
@@ -30,13 +32,12 @@ struct QuestDetailView: View {
                             .font(.custom("Cochin", size: 30))
                             .fontWeight(.black)
 
+                        // Add task
                         HStack {
                             TextField("New task", text: $newTaskText)
 
                             Button {
-                                guard !newTaskText.isEmpty else { return }
-                                quest.tasks.append(TaskItem(title: newTaskText))
-                                newTaskText = ""
+                                addTask()
                             } label: {
                                 Image(systemName: "plus")
                                     .foregroundColor(.white)
@@ -50,13 +51,14 @@ struct QuestDetailView: View {
                         .cornerRadius(30)
                         .frame(maxWidth: 350)
 
+                        // Tasks
                         VStack(spacing: 12) {
                             ForEach(quest.tasks) { task in
                                 QuestTaskRow(
                                     task: task,
-                                    onDelete: {
-                                        quest.tasks.removeAll { $0 === task }
-                                    }
+                                    quest: quest,
+                                    onDelete: { deleteTask(task) },
+                                    showConfetti: $showConfetti  // pass binding
                                 )
                             }
                         }
@@ -70,6 +72,31 @@ struct QuestDetailView: View {
                     .frame(height: 200)
                     .padding(.bottom,25)
             }
+
+            // 🎉 Confetti overlay
+            QuestConfettiView(coinsEarned: CoinRewards.questCompletion, show: $showConfetti)
+        }
+    }
+
+    private func addTask() {
+        guard !newTaskText.isEmpty else { return }
+
+        let task = TaskItem(title: newTaskText)
+        quest.tasks.append(task)
+        newTaskText = ""
+        saveChanges()
+    }
+
+    private func deleteTask(_ task: TaskItem) {
+        quest.tasks.removeAll { $0 === task }
+        saveChanges()
+    }
+
+    private func saveChanges() {
+        do {
+            try context.save()
+        } catch {
+            print("❌ Failed to save task/quest changes: \(error)")
         }
     }
 }

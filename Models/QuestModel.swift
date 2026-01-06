@@ -6,16 +6,17 @@
 //
 
 import SwiftData
+import Foundation
 
 @Model
 class Quest {
-    var title: String
-    var icon: String
-    var tasks: [TaskItem]
+    @Attribute var title: String
+    @Attribute var icon: String
+    @Relationship var tasks: [TaskItem] = []  // Observable relationship
+    @Attribute var isCompleted: Bool = false
 
-    init(title: String, icon: String, tasks: [TaskItem] = []) {
+    init(title: String, icon: String) {
         self.title = title
         self.icon = icon
-        self.tasks = tasks
     }
 }

@@ -7,13 +7,13 @@
 
 import SwiftData
 
-@Model
-class TaskItem {
-    var title: String
-    var isDone: Bool = false
 
-    init(title: String, isDone: Bool = false) {
+@Model
+class TaskItem: Identifiable {
+    @Attribute var title: String
+    @Attribute var isDone: Bool = false
+
+    init(title: String) {
         self.title = title
-        self.isDone = isDone
     }
 }

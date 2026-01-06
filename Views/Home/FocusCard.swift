@@ -10,6 +10,7 @@ import SwiftUI
 struct FocusCard: View {
     let icon: String // can be SF Symbol or emoji
     let title: String
+    let isCompleted: Bool  // ✅ new
 
     var body: some View {
         VStack(spacing: 12) {
@@ -27,7 +28,11 @@ struct FocusCard: View {
         }
         .padding()
         .frame(width: 110, height: 120)
-        .background(Color.white.opacity(0.7))
+        .background(
+            isCompleted
+                ? Color.green.opacity(0.3) // ✅ light green for completed
+                : Color.white.opacity(0.7)
+        )
         .cornerRadius(18)
         .shadow(radius: 4)
     }
@@ -42,7 +47,6 @@ extension String {
 
 extension Character {
     var isEmoji: Bool {
-        // Swift 5.3+ built-in property
         return unicodeScalars.first?.properties.isEmojiPresentation ?? false
     }
 }

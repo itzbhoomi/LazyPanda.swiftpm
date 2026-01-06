@@ -27,9 +27,7 @@ struct TodayFocusSection: View {
                 HStack(spacing: 16) {
 
                     // ➕ Add Quest card
-                    Button(action: {
-                        onAddQuest()
-                    }) {
+                    Button(action: { onAddQuest() }) {
                         VStack(spacing: 12) {
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 25))
@@ -48,12 +46,15 @@ struct TodayFocusSection: View {
                     // 🧭 User quests
                     ForEach(quests) { quest in
                         NavigationLink(value: quest) {
-                            FocusCard(icon: quest.icon, title: quest.title)
+                            FocusCard(icon: quest.icon, title: quest.title, isCompleted: quest.isCompleted)
+                                .simultaneousGesture(
+                                    LongPressGesture(minimumDuration: 0.6)
+                                        .onEnded { _ in
+                                            questToDelete = quest
+                                        }
+                                )
                         }
                         .buttonStyle(.plain)
-                        .onLongPressGesture {
-                            questToDelete = quest   // 👈 trigger confirmation
-                        }
                     }
                 }
                 .padding(.horizontal, 15)

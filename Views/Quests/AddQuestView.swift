@@ -53,6 +53,7 @@ struct AddQuestView: View {
                         }
                     }
 
+                    // Add task
                     HStack {
                         TextField("New task", text: $taskText)
 
@@ -73,23 +74,18 @@ struct AddQuestView: View {
                     .cornerRadius(30)
                     .frame(width: 350)
 
+                    // Task list
                     VStack(spacing: 12) {
                         ForEach(tasks.indices, id: \.self) { index in
-                            TaskRow(
-                                task: $tasks[index],
-                                onDelete: { tasks.remove(at: index) }
-                            )
+                            TaskRow(task: $tasks[index]) {
+                                tasks.remove(at: index)
+                            }
                         }
                     }
 
+                    // Save quest
                     Button {
-                        let quest = Quest(
-                            title: questName,
-                            icon: selectedIcon,
-                            tasks: tasks
-                        )
-                        context.insert(quest)
-                        dismiss()
+                        saveQuest()
                     } label: {
                         Text("Save Quest")
                             .frame(maxWidth: 320)
@@ -104,35 +100,48 @@ struct AddQuestView: View {
             }
         }
     }
+
+    private func saveQuest() {
+        guard !questName.isEmpty else { return }
+
+        let quest = Quest(title: questName, icon: selectedIcon)
+        for task in tasks {
+            quest.tasks.append(task)  // Append to relationship
+        }
+
+        context.insert(quest)
+
+        do {
+            try context.save()
+            dismiss()
+        } catch {
+            print("❌ Failed to save quest: \(error)")
+        }
+    }
 }
 
 struct TaskRow: View {
     @Binding var task: TaskItem
+    var onDelete: () -> Void
+
     @State private var showEditAlert = false
     @State private var editedTitle = ""
 
-    var onDelete: () -> Void
-
     var body: some View {
         HStack {
-            // Completion button
             Button {
                 task.isDone.toggle()
             } label: {
                 Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
                     .foregroundColor(task.isDone ? .green : .brown)
-                    .font(.title3)
             }
 
-            // Task title
             Text(task.title)
                 .strikethrough(task.isDone)
                 .foregroundColor(task.isDone ? .gray : .primary)
                 .frame(maxWidth: 270, alignment: .leading)
                 .font(.custom("Cochin", size: 20))
-                
 
-            // Three dot menu
             Menu {
                 Button {
                     editedTitle = task.title
@@ -146,67 +155,10 @@ struct TaskRow: View {
                 } label: {
                     Label("Delete", systemImage: "trash")
                 }
-
             } label: {
                 Image(systemName: "ellipsis")
                     .rotationEffect(.degrees(90))
                     .foregroundColor(.brown)
-            }
-        }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(20)
-        .alert("Edit Task", isPresented: $showEditAlert) {
-            TextField("Task name", text: $editedTitle)
-
-            Button("Save") {
-                if !editedTitle.isEmpty {
-                    task.title = editedTitle
-                }
-            }
-
-            Button("Cancel", role: .cancel) {}
-        }
-    }
-}
-
-struct QuestTaskRow: View {
-
-    let task: TaskItem
-
-    @State private var showEditAlert = false
-    @State private var editedTitle = ""
-
-    var onDelete: () -> Void
-
-    var body: some View {
-        HStack {
-            Button {
-                task.isDone.toggle()
-            } label: {
-                Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(task.isDone ? .green : .brown)
-            }
-
-            Text(task.title)
-                .strikethrough(task.isDone)
-                .font(.custom("Cochin", size: 20))
-                .frame(maxWidth: 400, alignment: .leading)
-
-            Menu {
-                Button {
-                    editedTitle = task.title
-                    showEditAlert = true
-                } label: {
-                    Label("Edit", systemImage: "pencil")
-                }
-
-                Button(role: .destructive, action: onDelete) {
-                    Label("Delete", systemImage: "trash")
-                }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .rotationEffect(.degrees(90))
             }
         }
         .padding()
