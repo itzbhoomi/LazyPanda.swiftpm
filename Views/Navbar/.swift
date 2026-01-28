@@ -1,21 +1,27 @@
 //
-//  MainTabView.swift
+//  MainTabView 2.swift
 //  LazyPanda
 //
+//  Created by Bhoomi on 06/01/26.
+//
+
 
 import SwiftUI
 import SwiftData
 
 struct MainTabView: View {
 
-    // MARK: - SwiftData
     @Environment(\.modelContext) private var modelContext
 
-    // MARK: - Managers (INJECTED, NOT CREATED)
-    @EnvironmentObject private var coinManager: CoinManager
-
-    // MARK: - Navigation
+    @StateObject private var coinManager: CoinManager
     @State private var selectedTab: NavDestination = .home
+
+    // ✅ Correct init: context injected ONCE
+    init(modelContext: ModelContext) {
+        _coinManager = StateObject(
+            wrappedValue: CoinManager(context: modelContext)
+        )
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -38,9 +44,6 @@ struct MainTabView: View {
 
             BottomNavBar(selectedTab: $selectedTab)
         }
-        .onAppear {
-            // 🔑 One-time SwiftData binding
-            coinManager.setup(context: modelContext)
-        }
+        .environmentObject(coinManager)
     }
 }

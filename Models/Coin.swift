@@ -8,17 +8,6 @@
 import SwiftUI
 import SwiftData
 
-// MARK: - SwiftData Coin Model
-@Model
-final class CoinWallet {
-
-    var balance: Int
-
-    init(balance: Int = 0) {
-        self.balance = balance
-    }
-}
-
 // MARK: - Reasons for earning coins
 enum CoinReason: String, Codable {
     case studySessionCompleted
@@ -42,4 +31,9 @@ enum CoinRewards {
     static let questCompletion = 20
     static let weeklyStreak = 50
     static let monthlyStreak = 100
+}
+
+enum CoinTransactionType: String, Codable {
+    case earn
+    case spend
 }

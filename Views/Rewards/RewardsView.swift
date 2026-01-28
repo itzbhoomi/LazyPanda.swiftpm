@@ -4,14 +4,22 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct RewardsView: View {
 
-    let streakProgress: CGFloat = 0.65
+    // MARK: - SwiftData
+    @Query(
+        sort: \CoinTransaction.date,
+        order: .reverse
+    )
+    private var transactions: [CoinTransaction]
 
+    // MARK: - Colors
     let bambooGreen = Color(red: 0.38, green: 0.67, blue: 0.45)
     let softGreen   = Color(red: 0.75, green: 0.88, blue: 0.78)
 
+    // MARK: - Animations
     @State private var glowPulse = false
     @State private var pandaFloat = false
     @State private var appear = false
@@ -25,6 +33,35 @@ struct RewardsView: View {
             speed: Double.random(in: 8...14),
             delay: Double.random(in: 0...6)
         )
+    }
+
+    // MARK: - Streak Logic
+    private var currentStreak: Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        // Only consider EARN transactions
+        let earnDates = transactions
+            .filter { $0.type == .earn }
+            .map { calendar.startOfDay(for: $0.date) }
+
+        guard !earnDates.isEmpty else { return 0 }
+
+        let uniqueDays = Set(earnDates)
+        var streak = 0
+        var dayCursor = today
+
+        while uniqueDays.contains(dayCursor) {
+            streak += 1
+            dayCursor = calendar.date(byAdding: .day, value: -1, to: dayCursor)!
+        }
+
+        return streak
+    }
+
+    private var streakProgress: CGFloat {
+        // Assuming max streak to visualize is 30 days
+        min(CGFloat(currentStreak) / 30.0, 1.0)
     }
 
     var body: some View {
@@ -54,7 +91,8 @@ struct RewardsView: View {
             VStack {
                 Spacer().frame(height: 20)
 
-                VStack(spacing: 0) { // spacing can be adjusted
+                // 🏷️ Heading
+                VStack(spacing: 0) {
                     Text("LazyPanda’s")
                         .font(.custom("Cochin", size: 25))
                         .fontWeight(.black)
@@ -76,8 +114,6 @@ struct RewardsView: View {
                 .cornerRadius(40)
                 .shadow(radius: 10)
                 .offset(y:160)
-
-
 
                 Spacer()
 
@@ -116,7 +152,7 @@ struct RewardsView: View {
                             Button {
                                 // action when tapped (optional)
                             } label: {
-                                Text("7") // mock streak days
+                                Text("\(currentStreak)")
                                     .foregroundColor(.black)
                                     .font(.custom("Cochin", size: 25))
                                     .fontWeight(.black)
@@ -134,15 +170,16 @@ struct RewardsView: View {
                                     .shadow(color: Color.pink.opacity(glowPulse ? 0.5 : 0.3), radius: 20)
                             }
                         }
-                        .offset(y: -220 * streakProgress - 0) // position above current streak
+                        .offset(y: -220 * streakProgress)
                     }
                     .offset(x: -160, y: -50)
-
 
                     // 🎖 Buttons (GAME FEEL)
                     VStack(spacing: 0) {
 
-                        Button {} label: {
+                        NavigationLink {
+                            BadgesView()
+                        } label: {
                             Image("badges_icon")
                                 .resizable()
                                 .scaledToFit()
@@ -164,7 +201,7 @@ struct RewardsView: View {
                                 .scaledToFit()
                                 .frame(width: 135)
                         }
-                        .buttonStyle(BouncyButtonStyle(scale: 0.88)) // heavier feel
+                        .buttonStyle(BouncyButtonStyle(scale: 0.88))
                     }
                     .offset(x: 148, y: -120)
 
@@ -182,7 +219,9 @@ struct RewardsView: View {
                 // ⬇️ Bottom Interaction Area
                 HStack(spacing: 0) {
 
-                    Button {} label: {
+                    NavigationLink {
+                        TreasureView()
+                    } label: {
                         Image("treasure_box")
                             .resizable()
                             .scaledToFit()
@@ -192,7 +231,9 @@ struct RewardsView: View {
 
                     Spacer()
 
-                    Button {} label: {
+                    NavigationLink {
+                        BambooVerseView()
+                    } label: {
                         Image("bamboo_entrance")
                             .resizable()
                             .scaledToFit()
@@ -234,10 +275,7 @@ struct RewardsView: View {
     }
 }
 
-//
 // MARK: - 🎮 Bouncy Button Style
-//
-
 struct BouncyButtonStyle: ButtonStyle {
 
     var scale: CGFloat = 0.92
@@ -257,10 +295,7 @@ struct BouncyButtonStyle: ButtonStyle {
     }
 }
 
-//
 // MARK: - Firefly Model
-//
-
 struct Firefly: Identifiable {
     let id = UUID()
     let x: CGFloat
@@ -270,10 +305,7 @@ struct Firefly: Identifiable {
     let delay: Double
 }
 
-//
 // MARK: - Firefly View (FLOAT + FLICKER)
-//
-
 struct FireflyView: View {
     @State private var float = false
     @State private var flicker = false

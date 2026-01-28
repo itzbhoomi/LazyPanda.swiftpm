@@ -1,38 +1,24 @@
-//
-//  CoinManager.swift
-//  LazyPanda
-//
-//  Created by Bhoomi on 06/01/26.
-//
-
 import SwiftUI
 import SwiftData
 
 @MainActor
 final class CoinManager: ObservableObject {
 
-    private var context: ModelContext?
-    @Published private(set) var wallet: CoinWallet?
+    private var context: ModelContext!
 
-    init(context: ModelContext?) {
+    @Published private(set) var wallet: CoinWallet!
+
+    // MARK: - One-time setup
+    func setup(context: ModelContext) {
+        guard self.context == nil else { return } // prevent double setup
         self.context = context
-    }
 
-    func configure(with context: ModelContext) {
-        guard self.context == nil else { return }
-        self.context = context
-        loadWallet()
-    }
-
-    private func loadWallet() {
-        guard let context else { return }
-
-        if let wallet = try? context.fetch(
+        if let existingWallet = try? context.fetch(
             FetchDescriptor<CoinWallet>()
         ).first {
-            self.wallet = wallet
+            self.wallet = existingWallet
         } else {
-            let wallet = CoinWallet()
+            let wallet = CoinWallet(balance: 0)
             context.insert(wallet)
             self.wallet = wallet
             try? context.save()
@@ -41,17 +27,31 @@ final class CoinManager: ObservableObject {
 
     // MARK: - Earn
     func earn(_ amount: Int, reason: CoinReason) {
-        guard let wallet, let context else { return }
+        let tx = CoinTransaction(
+            amount: amount,
+            type: .earn,
+            earnReason: reason
+        )
+
+        context.insert(tx)
         wallet.balance += amount
+
         try? context.save()
     }
 
     // MARK: - Spend
     func spend(_ amount: Int, reason: CoinSpendReason) -> Bool {
-        guard let wallet, let context else { return false }
         guard wallet.balance >= amount else { return false }
 
+        let tx = CoinTransaction(
+            amount: amount,
+            type: .spend,
+            spendReason: reason
+        )
+
+        context.insert(tx)
         wallet.balance -= amount
+
         try? context.save()
         return true
     }
