@@ -147,28 +147,41 @@ private extension BambooVerseView {
                let item = items.first(where: { $0.id == selectedID }) {
 
                 VStack {
+                    HStack {
+                        Spacer()
+
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(.ultraThinMaterial)
+                                .frame(width: 44, height: 160)
+                                .shadow(radius: 4)
+
+                            Slider(
+                                value: Binding(
+                                    get: { sliderValue },
+                                    set: {
+                                        sliderValue = $0
+                                        item.scale = $0
+                                    }
+                                ),
+                                in: 0.5...2.0,
+                                step: 0.05
+                            )
+                            .rotationEffect(.degrees(-90))
+                            .frame(width: 140) // IMPORTANT: width, not height
+                        }
+                        .padding(.trailing, 18)
+                        .padding(.top, 80)
+                    }
+
                     Spacer()
-                    Slider(
-                        value: Binding(
-                            get: { sliderValue },
-                            set: {
-                                sliderValue = $0
-                                item.scale = $0
-                            }
-                        ),
-                        in: 0.5...2.0,
-                        step: 0.05
-                    )
-                    .padding(.horizontal, 40)
-                    .padding(.vertical, 12)
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .accentColor(.brown)
-                    .padding(.bottom, 100)
                 }
+                .transition(.opacity)
             }
         }
     }
+
+
 
     var shopButton: some View {
         VStack {
