@@ -33,6 +33,10 @@ final class CoinManager: ObservableObject {
             earnReason: reason
         )
 
+        // Link transaction to wallet
+        tx.wallet = wallet
+        wallet.transactions.append(tx)
+
         context.insert(tx)
         wallet.balance += amount
 
@@ -48,6 +52,10 @@ final class CoinManager: ObservableObject {
             type: .spend,
             spendReason: reason
         )
+
+        // Link transaction to wallet
+        tx.wallet = wallet
+        wallet.transactions.append(tx)
 
         context.insert(tx)
         wallet.balance -= amount

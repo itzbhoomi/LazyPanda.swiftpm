@@ -50,18 +50,6 @@ struct BambooVerseView: View {
                             width: 160 * item.scale,
                             height: 160 * item.scale
                         )
-                        .shadow(
-                            color: selectedItemID == item.id
-                                ? .yellow.opacity(0.6)
-                                : .clear,
-                            radius: 12
-                        )
-                        .shadow(
-                            color: selectedItemID == item.id
-                                ? .blue.opacity(0.35)
-                                : .clear,
-                            radius: 24
-                        )
                         .onTapGesture {
                             if selectedItemID == item.id {
                                 selectedItemID = nil

@@ -195,7 +195,9 @@ struct RewardsView: View {
                         }
                         .buttonStyle(BouncyButtonStyle())
 
-                        Button {} label: {
+                        NavigationLink {
+                            DailyChallengesView()
+                        } label: {
                             Image("gaming_console")
                                 .resizable()
                                 .scaledToFit()

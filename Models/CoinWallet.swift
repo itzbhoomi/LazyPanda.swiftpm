@@ -12,16 +12,13 @@ import SwiftData
 final class CoinWallet {
 
     // MARK: - Stored Properties
-
     var balance: Int
 
     // MARK: - Relationships
-
     @Relationship(deleteRule: .cascade)
     var transactions: [CoinTransaction] = []
 
     // MARK: - Init
-
     init(balance: Int = 0) {
         self.balance = balance
     }

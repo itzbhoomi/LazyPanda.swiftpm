@@ -12,14 +12,16 @@ final class CoinTransaction {
     var amount: Int
     var type: CoinTransactionType
 
-    // Only one will be set
     var earnReasonRaw: String?
     var spendReasonRaw: String?
 
     var date: Date
 
-    // MARK: - Computed helpers (UI-safe)
+    // Back-link to wallet
+    @Relationship(inverse: \CoinWallet.transactions)
+    var wallet: CoinWallet?
 
+    // MARK: - Computed helpers
     var earnReason: CoinReason? {
         earnReasonRaw.flatMap { CoinReason(rawValue: $0) }
     }

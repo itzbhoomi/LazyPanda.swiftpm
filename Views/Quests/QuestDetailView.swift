@@ -10,15 +10,24 @@ import SwiftData
 
 struct QuestDetailView: View {
 
+    // MARK: - Environment
     @Environment(\.modelContext) private var context
+    @EnvironmentObject private var coinManager: CoinManager
+    @Environment(\.dismiss) private var dismiss
+
+    // MARK: - Inputs
     let quest: Quest
 
+    // MARK: - Local state
     @State private var newTaskText = ""
-    @State private var showConfetti = false  // ✅ new state for confetti
+    @State private var showConfetti = false
+    @State private var coinsEarned = 0
+    @State private var rewardGiven = false  // To prevent double earning
 
+    // MARK: - Body
     var body: some View {
         ZStack {
-            // Background
+            // 🌿 Background
             Image("bamboo_bg")
                 .resizable()
                 .scaledToFill()
@@ -28,11 +37,12 @@ struct QuestDetailView: View {
                 ScrollView {
                     VStack(spacing: 20) {
 
+                        // Quest Title
                         Text("\(quest.icon) \(quest.title)")
                             .font(.custom("Cochin", size: 30))
                             .fontWeight(.black)
 
-                        // Add task
+                        // Add Task Section
                         HStack {
                             TextField("New task", text: $newTaskText)
 
@@ -51,14 +61,14 @@ struct QuestDetailView: View {
                         .cornerRadius(30)
                         .frame(maxWidth: 350)
 
-                        // Tasks
+                        // Tasks List
                         VStack(spacing: 12) {
                             ForEach(quest.tasks) { task in
                                 QuestTaskRow(
                                     task: task,
                                     quest: quest,
                                     onDelete: { deleteTask(task) },
-                                    showConfetti: $showConfetti  // pass binding
+                                    showConfetti: $showConfetti
                                 )
                             }
                         }
@@ -66,18 +76,28 @@ struct QuestDetailView: View {
                     }
                 }
 
+                // Panda Illustration
                 Image("panda-study-floor")
                     .resizable()
                     .scaledToFit()
                     .frame(height: 200)
-                    .padding(.bottom,25)
+                    .padding(.bottom, 25)
             }
 
-            // 🎉 Confetti overlay
-            QuestConfettiView(coinsEarned: CoinRewards.questCompletion, show: $showConfetti)
+            // 🎉 Confetti Overlay
+            QuestConfettiView(coinsEarned: coinsEarned, show: $showConfetti)
+        }
+        // MARK: - Reward Coins when confetti triggers
+        .onChange(of: showConfetti) { newValue in
+            if newValue && !rewardGiven {
+                coinsEarned = CoinRewards.questCompletion
+                coinManager.earn(coinsEarned, reason: .questCompleted)
+                rewardGiven = true
+            }
         }
     }
 
+    // MARK: - Add a new task
     private func addTask() {
         guard !newTaskText.isEmpty else { return }
 
@@ -87,11 +107,13 @@ struct QuestDetailView: View {
         saveChanges()
     }
 
+    // MARK: - Delete task
     private func deleteTask(_ task: TaskItem) {
         quest.tasks.removeAll { $0 === task }
         saveChanges()
     }
 
+    // MARK: - Save changes
     private func saveChanges() {
         do {
             try context.save()
