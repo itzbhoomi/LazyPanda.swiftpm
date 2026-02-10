@@ -1,68 +1,82 @@
 //
-//  QuestDetailView.swift
-//  LazyPanda
+// QuestDetailView.swift
+// LazyPanda
 //
-//  Created by Bhoomi on 31/12/25.
+// Created by Bhoomi on 31/12/25.
 //
-
 import SwiftUI
 import SwiftData
 
 struct QuestDetailView: View {
-
     // MARK: - Environment
     @Environment(\.modelContext) private var context
     @EnvironmentObject private var coinManager: CoinManager
     @Environment(\.dismiss) private var dismiss
-
+    
     // MARK: - Inputs
     let quest: Quest
-
+    
     // MARK: - Local state
     @State private var newTaskText = ""
     @State private var showConfetti = false
     @State private var coinsEarned = 0
-    @State private var rewardGiven = false  // To prevent double earning
-
-    // MARK: - Body
+    @State private var rewardGiven = false
+    
     var body: some View {
-        ZStack {
-            // 🌿 Background
-            Image("bamboo_bg")
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
-
-            VStack {
-                ScrollView {
-                    VStack(spacing: 20) {
-
+        GeometryReader { geo in
+            let isPad = geo.size.width > 600
+            let baseScale = isPad ? 1.10 : 1.00
+            
+            // Responsive values
+            let sidePadding: CGFloat    = isPad ? 60 : 24
+            let fieldFontSize: CGFloat  = isPad ? 26 : 20
+            let titleFontSize: CGFloat  = isPad ? 42 : 30
+            let pandaHeight: CGFloat    = isPad ? 240 : 180
+            let plusFrame: CGFloat      = isPad ? 60 : 45
+            
+            ZStack {
+                // Background
+                Image("bamboo_bg")
+                    .resizable()
+                    .scaledToFill()
+                    .ignoresSafeArea()
+                
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: isPad ? 32 : 20) {
+                        Spacer()
+                            .frame(height: isPad ? 80 : 40)
+                        
                         // Quest Title
                         Text("\(quest.icon) \(quest.title)")
-                            .font(.custom("Cochin", size: 30))
+                            .font(.custom("Cochin", size: titleFontSize))
                             .fontWeight(.black)
-
-                        // Add Task Section
-                        HStack {
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, sidePadding)
+                        
+                        // Add Task Section – full width
+                        HStack(spacing: 16) {
                             TextField("New task", text: $newTaskText)
-
+                                .font(.custom("Cochin", size: fieldFontSize))
+                            
                             Button {
                                 addTask()
                             } label: {
                                 Image(systemName: "plus")
+                                    .font(.system(size: isPad ? 28 : 22, weight: .bold))
                                     .foregroundColor(.white)
-                                    .frame(width: 45, height: 45)
+                                    .frame(width: plusFrame, height: plusFrame)
                                     .background(Color.brown)
                                     .clipShape(Circle())
+                                    .shadow(radius: 4)
                             }
                         }
                         .padding()
                         .background(.ultraThinMaterial)
-                        .cornerRadius(30)
-                        .frame(maxWidth: 350)
-
+                        .clipShape(RoundedRectangle(cornerRadius: 30))
+                        .padding(.horizontal, sidePadding)
+                        
                         // Tasks List
-                        VStack(spacing: 12) {
+                        VStack(spacing: isPad ? 16 : 12) {
                             ForEach(quest.tasks) { task in
                                 QuestTaskRow(
                                     task: task,
@@ -72,22 +86,29 @@ struct QuestDetailView: View {
                                 )
                             }
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, sidePadding)
+                        
+                        // Extra bottom space so last task / panda is reachable
+                        Color.clear
+                            .frame(height: isPad ? 180 : 140)
+                        
+                        // Panda Illustration (centered, bottom-ish)
+                        Image("panda-study-floor")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: pandaHeight)
+                            .shadow(radius: 8)
+                            .padding(.bottom, isPad ? 60 : 30)
                     }
+                    .padding(.bottom, isPad ? 160 : 120)  // crucial: prevents cutoff
                 }
-
-                // Panda Illustration
-                Image("panda-study-floor")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 200)
-                    .padding(.bottom, 25)
+                
+                // Confetti Overlay
+                QuestConfettiView(coinsEarned: coinsEarned, show: $showConfetti)
             }
-
-            // 🎉 Confetti Overlay
-            QuestConfettiView(coinsEarned: coinsEarned, show: $showConfetti)
+            .scaleEffect(baseScale, anchor: .top)
         }
-        // MARK: - Reward Coins when confetti triggers
+        // MARK: - Reward logic
         .onChange(of: showConfetti) { newValue in
             if newValue && !rewardGiven {
                 coinsEarned = CoinRewards.questCompletion
@@ -96,29 +117,27 @@ struct QuestDetailView: View {
             }
         }
     }
-
-    // MARK: - Add a new task
+    
     private func addTask() {
-        guard !newTaskText.isEmpty else { return }
-
-        let task = TaskItem(title: newTaskText)
+        let trimmed = newTaskText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        
+        let task = TaskItem(title: trimmed)
         quest.tasks.append(task)
         newTaskText = ""
         saveChanges()
     }
-
-    // MARK: - Delete task
+    
     private func deleteTask(_ task: TaskItem) {
-        quest.tasks.removeAll { $0 === task }
+        quest.tasks.removeAll { $0.id == task.id }  // safer than === for Identifiable
         saveChanges()
     }
-
-    // MARK: - Save changes
+    
     private func saveChanges() {
         do {
             try context.save()
         } catch {
-            print("❌ Failed to save task/quest changes: \(error)")
+            print("❌ Failed to save: \(error)")
         }
     }
 }

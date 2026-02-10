@@ -11,5 +11,4 @@ enum NavDestination: String {
     case home
     case quests
     case rewards
-    case settings
 }

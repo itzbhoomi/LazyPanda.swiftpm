@@ -10,6 +10,13 @@ struct MyApp: App {
         WindowGroup {
             MainTabView()
                 .environmentObject(coinManager)
+                .modelContainer(for: [
+                    CoinWallet.self,
+                    CoinTransaction.self,
+                    Quest.self,
+                    TaskItem.self,
+                    BambooVerseItemEntity.self
+                ])
         }
         .modelContainer(for: [
             CoinWallet.self,

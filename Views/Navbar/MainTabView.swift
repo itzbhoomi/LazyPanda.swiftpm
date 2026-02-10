@@ -24,22 +24,19 @@ struct MainTabView: View {
                 switch selectedTab {
                 case .home:
                     HomeView()
+                    
 
                 case .quests:
                     QuestsView()
 
                 case .rewards:
                     RewardsView()
-
-                case .settings:
-                    SettingsView()
                 }
             }
 
             BottomNavBar(selectedTab: $selectedTab)
         }
         .onAppear {
-            // 🔑 One-time SwiftData binding
             coinManager.setup(context: modelContext)
         }
     }

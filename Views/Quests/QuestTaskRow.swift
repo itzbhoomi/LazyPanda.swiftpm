@@ -1,60 +1,83 @@
 //
-//  QuestTaskRow.swift
-//  LazyPanda
+// QuestTaskRow.swift
+// LazyPanda
 //
-//  Created by Bhoomi on 06/01/26.
+// Created by Bhoomi on 06/01/26.
 //
-
 import SwiftUI
 import SwiftData
 
 struct QuestTaskRow: View {
-
+    
     let task: TaskItem
     let quest: Quest
-
-    @Environment(\.modelContext) private var context
-    var onDelete: () -> Void
     
+    @Environment(\.modelContext) private var context
+    
+    var onDelete: () -> Void
     @Binding var showConfetti: Bool
-
+    
     var body: some View {
-        HStack {
-
-            Button {
-                task.isDone.toggle()
-                saveChanges()
-                checkQuestCompletionAndReward()
-            } label: {
-                Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(task.isDone ? .green : .brown)
-            }
-
-            Text(task.title)
-                .strikethrough(task.isDone)
-                .font(.custom("Cochin", size: 20))
-                .frame(maxWidth: 400, alignment: .leading)
-
-            Menu {
+        GeometryReader { geo in
+            let isPad = geo.size.width > 600
+            let fontSize: CGFloat = isPad ? 24 : 20
+            let iconSize: CGFloat = isPad ? 28 : 24
+            let maxTextWidth: CGFloat = isPad ? 580 : 400
+            let paddingHorizontal: CGFloat = isPad ? 20 : 16
+            let paddingVertical: CGFloat = isPad ? 16 : 12
+            
+            HStack(spacing: isPad ? 16 : 12) {
+                // Checkbox / toggle
                 Button {
-                    // edit handled in parent
+                    task.isDone.toggle()
+                    saveChanges()
+                    checkQuestCompletionAndReward()
                 } label: {
-                    Label("Edit", systemImage: "pencil")
+                    Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: iconSize))
+                        .foregroundColor(task.isDone ? .green : .brown)
                 }
-
-                Button(role: .destructive, action: onDelete) {
-                    Label("Delete", systemImage: "trash")
+                
+                // Task title
+                Text(task.title)
+                    .strikethrough(task.isDone)
+                    .foregroundColor(task.isDone ? .gray : .primary)
+                    .font(.custom("Cochin", size: fontSize))
+                    .fontWeight(.medium)
+                    .frame(maxWidth: maxTextWidth, alignment: .leading)
+                    .lineLimit(3)
+                    .multilineTextAlignment(.leading)
+                
+                Spacer()
+                
+                // Menu (edit + delete)
+                Menu {
+                    Button {
+                        // Edit handled in parent view
+                    } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
+                    
+                    Button(role: .destructive, action: onDelete) {
+                        Label("Delete", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .rotationEffect(.degrees(90))
+                        .font(.system(size: isPad ? 24 : 20))
+                        .foregroundColor(.brown)
                 }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .rotationEffect(.degrees(90))
             }
+            .padding(.horizontal, paddingHorizontal)
+            .padding(.vertical, paddingVertical)
+            .background(.ultraThinMaterial)
+            .cornerRadius(24)
+            .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 2)
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(20)
+        .frame(height: 70)           // consistent row height
+        .frame(maxWidth: .infinity)  // fills available width
     }
-
+    
     private func saveChanges() {
         do {
             try context.save()
@@ -63,24 +86,25 @@ struct QuestTaskRow: View {
         }
     }
     
-    
     private func checkQuestCompletionAndReward() {
         guard !quest.isCompleted else { return }
+        
         let allDone = quest.tasks.allSatisfy { $0.isDone }
         guard allDone else { return }
-
+        
         quest.isCompleted = true
         saveChanges()
-
+        
         let wallet = getCoinWallet(context: context)
         wallet.balance += CoinRewards.questCompletion
         
-        // Show confetti
-            showConfetti = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                showConfetti = false
-            }
-
+        // Trigger confetti
+        showConfetti = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            showConfetti = false
+        }
+        
         print("🎉 Quest completed → +\(CoinRewards.questCompletion) coins")
     }
 }

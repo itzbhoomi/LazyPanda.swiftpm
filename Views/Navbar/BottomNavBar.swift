@@ -13,6 +13,8 @@ struct BottomNavBar: View {
 
     var body: some View {
         HStack {
+            Spacer()
+            
             NavItem(
                 icon: "house",
                 title: "Home",
@@ -42,14 +44,6 @@ struct BottomNavBar: View {
             }
 
             Spacer()
-
-            NavItem(
-                icon: "gear",
-                title: "Settings",
-                isActive: selectedTab == .settings
-            ) {
-                selectedTab = .settings
-            }
         }
         .padding()
         .background(
